@@ -1,12 +1,26 @@
 var layerMapper = [{
-    name: 'DriveBC',
+    name: 'DriveBC Incidents',
     type: 'geojson',
-    endpoint: 'https://drivebctokml.now.sh/geojson'
+    endpoint: 'https://drivebctokml.now.sh/geojson',
+    style: 'drivebc'
   },
   {
-    name: 'ActiveFirePoints',
+    name: 'Active Fire Points',
     type: 'geojson',
-    endpoint: 'https://services6.arcgis.com/ubm4tcTYICKBpist/arcgis/rest/services/BCWS_ActiveFires_PublicView/FeatureServer/0/query?where=FIRE_STATUS+%3C%3E+%27Not+Active%27&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelEnvelopeIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=true&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnDistinctValues=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pgeojson&token='
+    endpoint: 'https://services6.arcgis.com/ubm4tcTYICKBpist/arcgis/rest/services/BCWS_ActiveFires_PublicView/FeatureServer/0/query?where=FIRE_STATUS+%3C%3E+%27Not+Active%27&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelEnvelopeIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=true&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnDistinctValues=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pgeojson&token=',
+    style: 'firepoint'
+  },
+  {
+    name: 'Active Fire Perimeters',
+    type: 'geojson',
+    endpoint: 'https://services6.arcgis.com/ubm4tcTYICKBpist/arcgis/rest/services/BCWS_FirePerimeters_PublicView/FeatureServer/0/query?where=FIRE_STATUS+%3C%3E+%27Not+Active%27&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=true&returnCentroid=false&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnDistinctValues=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pgeojson&token=',
+    style: 'fireperimeter'
+  },
+  {
+    name: 'BC Highway Cameras',
+    type: 'geojson',
+    endpoint: 'https://services5.arcgis.com/DMpNrZXwcnMmkWrW/arcgis/rest/services/BC_HighwayCams/FeatureServer/0/query?where=&objectIds=&time=&geometry=-14709312.23546%2C+6171605.41945905%2C+-12789524.9063483%2C+8399302.6434706&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=true&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnDistinctValues=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pgeojson&token=',
+    style: 'highwaycams'
   }
 ];
 
@@ -27,10 +41,17 @@ var styles = {
       color: 'green',
       width: 3
     })
+  })],
+  'Polygon': [new ol.style.Style({
+    stroke: new ol.style.Stroke({
+      color: 'red',
+      width: 3
+    })
   })]
 };
 
 function styleFunction(feature, resolution) {
+  console.log(feature.get('layerName'));
   var geom_name = feature.getGeometry().getType();
   // return styles[geom_name]
   // so styles['Point'] or styles['LineString']
@@ -65,12 +86,7 @@ layerMapper.forEach((loadLayer) => {
     style: styleFunction,
   });
 
-  loadLayer.source.on( 'addfeature', function (event) {
-    const feature = event.feature;
-//    feature.layerName = layerName;
-    //feature.set('layer', 'test');
-    console.log(feature);
-  });
+  loadLayer.source.on( 'addfeature', (event) => addLayerName(event, loadLayer.name));
   
   map.addLayer(loadLayer.layer);
 });
@@ -78,7 +94,7 @@ layerMapper.forEach((loadLayer) => {
 
 map.on('click', (evt) => {
   var features = [];
-  map.forEachFeatureAtPixel(evt.pixel, (f, l) => {
+  map.forEachFeatureAtPixel(evt.pixel, function(f, l) {
     features.push(f);
   });
 
@@ -99,3 +115,8 @@ map.on('click', (evt) => {
   });
 
 });
+
+function addLayerName(event, name){
+    const feature = event.feature;
+    feature.set('layerName', name);
+}
