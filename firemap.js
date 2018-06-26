@@ -88,7 +88,7 @@ map.on('click', (evt) => {
     var properties = feature.getProperties();
 
     for (var key in properties) {
-      var html = '<div><div>' + key + '</div><div>' + properties[key] + '</div></div>';
+      var html = '<div class="row"><div class="col">' + key + '</div><div class="col">' + properties[key] + '</div></div>';
       infoView.insertAdjacentHTML('beforeend', html);
     };
 
