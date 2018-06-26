@@ -24,7 +24,7 @@ var layerMapper = [{
   }
 ];
 
-var styles = {
+const defaultStyles = {
   'Point': [new ol.style.Style({
     image: new ol.style.Circle({
       fill: new ol.style.Fill({
@@ -50,12 +50,46 @@ var styles = {
   })]
 };
 
+var style = [];
+
+style['firepoint'] = {
+  'Point': [new ol.style.Style({
+    image: new ol.style.Circle({
+      fill: new ol.style.Fill({
+        color: [255, 0, 0, 0.5]
+      }),
+      stroke: new ol.style.Stroke({
+        color: 'red'
+      }),
+      radius: 5
+    })
+  })]
+};
+
+style['highwaycams'] = {
+  'Point': [new ol.style.Style({
+    image: new ol.style.Circle({
+      fill: new ol.style.Fill({
+        color: [0, 0, 255, 0.5]
+      }),
+      stroke: new ol.style.Stroke({
+        color: [0, 0, 255, 1]
+      }),
+      radius: 5
+    })
+  })]
+};
+
 function styleFunction(feature, resolution) {
-  console.log(feature.get('layerName'));
-  var geom_name = feature.getGeometry().getType();
-  // return styles[geom_name]
-  // so styles['Point'] or styles['LineString']
-  return styles[geom_name];
+  const geom_name = feature.getGeometry().getType();
+  const layer_style = feature.get('layerStyle');
+  console.log(layer_style);
+
+  if (layer_style && style[layer_style]){
+    return style[layer_style][geom_name];
+  }
+
+  return defaultStyles[geom_name];
 };
 
 var map = new ol.Map({
@@ -86,7 +120,7 @@ layerMapper.forEach((loadLayer) => {
     style: styleFunction,
   });
 
-  loadLayer.source.on( 'addfeature', (event) => addLayerName(event, loadLayer.name));
+  loadLayer.source.on( 'addfeature', (event) => addLayerName(event, loadLayer.style));
   
   map.addLayer(loadLayer.layer);
 });
@@ -116,7 +150,7 @@ map.on('click', (evt) => {
 
 });
 
-function addLayerName(event, name){
+function addLayerName(event, layerStyle){
     const feature = event.feature;
-    feature.set('layerName', name);
+    feature.set('layerStyle', layerStyle);
 }
