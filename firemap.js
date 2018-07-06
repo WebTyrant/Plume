@@ -1,3 +1,5 @@
+import Map from 'ol/Map.js';
+
 var layerMapper = [{
     name: 'DriveBC Incidents',
     type: 'geojson',
@@ -101,28 +103,32 @@ var map = new ol.Map({
   ],
   view: new ol.View({
     center: ol.proj.fromLonLat([-127.6476, 53.7267]),
-    zoom: 6
+    zoom: 7,
+    extent: [-15483011.17792913, 5744113.096350914, -12675020.506844893, 8679294.982501682],
   })
 });
 
 // geojson so far
 layerMapper.forEach((loadLayer) => {
 
-  loadLayer.source = new ol.source.Vector({
-    format: new ol.format.GeoJSON(),
-    projection: 'EPSG:3857',
-    url: loadLayer.endpoint,
-  });
-
-  loadLayer.layer = new ol.layer.Vector({
-    name: loadLayer.name,
-    source: loadLayer.source,
-    style: styleFunction,
-  });
-
-  loadLayer.source.on( 'addfeature', (event) => addLayerName(event, loadLayer.style));
+  if(loadLayer.type == 'geojson'){
+    loadLayer.source = new ol.source.Vector({
+      format: new ol.format.GeoJSON(),
+      projection: 'EPSG:3857',
+      url: loadLayer.endpoint,
+    });
   
-  map.addLayer(loadLayer.layer);
+    loadLayer.layer = new ol.layer.Vector({
+      name: loadLayer.name,
+      source: loadLayer.source,
+      style: styleFunction,
+    });
+  
+    loadLayer.source.on( 'addfeature', (event) => addLayerName(event, loadLayer.style));
+    
+    map.addLayer(loadLayer.layer);
+  }
+  
 });
 
 
